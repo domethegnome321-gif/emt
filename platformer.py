@@ -1,41 +1,60 @@
-import pygame
+import pygame, random
 
-class Bird(pygame.sprite.Sprite):
-    def __init__(self):
-        super().__init__()
-        self.image = pygame.Surface((50, 50))  # Placeholder for bird shape
-        self.image.fill((255, 255, 255))  # White background for testing
-        self.rect = self.image.get_rect(center=(100, 100))
-        self.wing_state = 0
-        self.is_jumping = False
-        self.gravity = 0.5
-        self.velocity_y = 0
+# Initialize Pygame
+pygame.init()
 
-    def update(self):
-        if self.is_jumping:
-            self.velocity_y += self.gravity
-            self.rect.y += self.velocity_y
-            if self.rect.y > 300:  # Ground level
-                self.rect.y = 300
-                self.is_jumping = False
-                self.velocity_y = 0
+# Screen dimensions
+WIDTH, HEIGHT = 800, 600
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption('Bird Platformer')
 
-        self.animate_wings()
+# Colors
+WHITE = (255, 255, 255)
+GREEN = (0, 255, 0)
+BROWN = (139, 69, 19)
 
-    def jump(self):
-        if not self.is_jumping:
-            self.velocity_y = -15  # Jump strength
-            self.is_jumping = True
+# Load assets
+background = pygame.image.load('forest_background.jpg')
+bird_image = pygame.image.load('bird_image.png')
+bird_rect = bird_image.get_rect(center=(100, HEIGHT // 2))
 
-    def animate_wings(self):
-        if self.is_jumping or self.rect.y < 300:
-            self.wing_state = (self.wing_state + 1) % 3  # Simple wing animation
-            if self.wing_state == 1:
-                self.image.fill((255, 255, 0))  # Yellow for wing down
-            elif self.wing_state == 2:
-                self.image.fill((255, 0, 0))  # Red for wing up
-            else:
-                self.image.fill((255, 255, 255))  # Back to bird body color
+# Game variables
+velocity_y = 0
+gravity = 0.5
+jump_strength = -10
 
-    def draw(self, screen):
-        screen.blit(self.image, self.rect)
+# Main game loop
+running = True
+ticks = 0
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+    # Controls
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_w]:  # Move up
+        bird_rect.y += velocity_y
+        velocity_y += gravity
+    if keys[pygame.K_s]:  # Move down
+        bird_rect.y += 5
+    if keys[pygame.K_a]:  # Move left
+        bird_rect.x -= 5
+    if keys[pygame.K_d]:  # Move right
+        bird_rect.x += 5
+    if keys[pygame.K_SPACE]:  # Jump
+        velocity_y = jump_strength
+
+    # Keep bird within the screen
+    if bird_rect.y <= 0:
+        bird_rect.y = 0
+    if bird_rect.y >= HEIGHT:
+        bird_rect.y = HEIGHT - bird_rect.height
+
+    # Draw everything
+    screen.blit(background, (0, 0))
+    screen.blit(bird_image, bird_rect)
+    pygame.display.flip()
+    ticks += 1
+
+pygame.quit()
